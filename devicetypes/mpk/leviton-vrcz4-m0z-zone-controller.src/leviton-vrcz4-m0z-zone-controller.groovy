@@ -31,9 +31,9 @@
  		command "getparamState"       
  		command "setLightStatus"       
         
-		// fingerprint deviceId: "0x0100", inClusters:"0x85, 0x2D, 0x7C, 0x77, 0x82, 0x73, 0x86, 0x72, 0x91, 0xEF, 0x2B, 0x2C"
+		fingerprint deviceId: "0x0100", inClusters:"0x85, 0x2D, 0x7C, 0x77, 0x82, 0x73, 0x86, 0x72, 0x91, 0xEF, 0x2B, 0x2C"
         // fingerprint zw:L type:0100 mfr:001D prod:0702 model:0261 ver:0.02 zwv:2.97 lib:01
-        fingerprint mfr: "001D", prod: "0702", model: "0261"
+        // fingerprint mfr: "001D", prod: "0702", model: "0261"
 	}
 
    	/*preferences {
