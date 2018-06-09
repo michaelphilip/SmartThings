@@ -14,7 +14,7 @@
  *
  */
  
- metadata {
+ 	metadata {
 	// Automatically generated. Make future change here.
 	definition (name: "Leviton VRCZ4-M0Z Zone Controller", namespace: "mpk", author: "Michael Philip Kaufman") {
 		capability "Actuator"
@@ -34,7 +34,7 @@
 		fingerprint deviceId: "0x0100", inClusters:"0x85, 0x2D, 0x7C, 0x77, 0x82, 0x73, 0x86, 0x72, 0x91, 0xEF, 0x2B, 0x2C"
         // fingerprint zw:L type:0100 mfr:001D prod:0702 model:0261 ver:0.02 zwv:2.97 lib:01
         // fingerprint mfr: "001D", prod: "0702", model: "0261"
-	}
+    }
 
    	/*preferences {
             input "button1", "string", title: "Button 1 Network id", description: "button 1 network id", required: false
@@ -89,51 +89,52 @@ def parse(String description) {
 }
 
 def handleManufacturerProprietary(String description) {
-	log.debug "Handling manufacturer-proprietary command: '${description}'"
+	// log.debug "Handling manufacturer-proprietary command: '${description}'"
     def result = []
     
 	switch (description) {
-    	case "zw device: 04, command: 9100, payload: 1D 0C 01 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 01 00 ":
         	// log.debug "Turning button #1 on"
             updateState("currentButton", "1")
             result << createEvent(name: "button", value: "on", data: [button: 1, status: "on"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 05 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 05 00 ":
         	// log.debug "Turning button #1 off"
             updateState("currentButton", "1")
             result << createEvent(name: "button", value: "off", data: [button: 1, status: "off"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 02 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 02 00 ":
         	// log.debug "Turning button #2 on"
             updateState("currentButton", "2")
             result << createEvent(name: "button", value: "on", data: [button: 2, status: "on"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 06 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 06 00 ":
         	// log.debug "Turning button #2 off"
             updateState("currentButton", "2")
             result << createEvent(name: "button", value: "off", data: [button: 2, status: "off"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 03 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 03 00 ":
         	// log.debug "Turning button #3 on"
             updateState("currentButton", "3")
             result << createEvent(name: "button", value: "on", data: [button: 3, status: "on"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 07 00 ":        
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 07 00 ":        
         	// log.debug "Turning button #3 off"
             updateState("currentButton", "3")
             result << createEvent(name: "button", value: "off", data: [button: 3, status: "off"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 04 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 04 00 ":
         	// log.debug "Turning button #4 on"
             updateState("currentButton", "4")
             result << createEvent(name: "button", value: "on", data: [button: 4, status: "on"], isStateChange: true)
         	break
-    	case "zw device: 04, command: 9100, payload: 1D 0C 08 00 ":
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 08 00 ":
         	// log.debug "Turning button #4 off"
             updateState("currentButton", "4")
             result << createEvent(name: "button", value: "off", data: [button: 4, status: "off"], isStateChange: true)
         	break
         default:
+        	// log.debug "Fell through to default switch case"
         	break
     }
     
@@ -141,7 +142,7 @@ def handleManufacturerProprietary(String description) {
 }
 
 def setButton(num, val) {
-	// log.debug "Setting button${num} to ${val}"
+	log.debug "Setting button${num} to ${val}"
 	updateState("button$num", val)
 }
 
@@ -173,10 +174,8 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
     def result = []
     result << createEvent(name:"switch", value: cmd.value ? "on" : "off")
 
-    // For a multilevel switch, cmd.value can be from 1-99 to represent
-    // dimming levels
-    result << createEvent(name:"level", value: cmd.value, unit:"%",
-                          descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
+    // For a multilevel switch, cmd.value can be from 1-99 to represent dimming levels
+    result << createEvent(name:"level", value: cmd.value, unit:"%", descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
 
     result
 }
@@ -190,8 +189,7 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelR
 	log.debug "SwitchMultilevelReport: ${cmd}"
     def result = []
     result << createEvent(name:"switch", value: cmd.value ? "on" : "off")
-    result << createEvent(name:"level", value: cmd.value, unit:"%",
-                          descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
+    result << createEvent(name:"level", value: cmd.value, unit:"%", descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
     result
 }
 
@@ -226,7 +224,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
 
 // A scene command was received -- it's probably scene 0, so treat it like a button release
 def zwaveEvent(physicalgraph.zwave.commands.sceneactuatorconfv1.SceneActuatorConfGet cmd) {
-	log.debug "confget; $cmd"
+	log.debug "SceneActuatorConfGet: $cmd"
 	buttonEvent(cmd.sceneId)
 }
 
@@ -285,11 +283,11 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv2.AssociationReport cmd)
 	log.debug "Association report V2: ${cmd}" 
 	def commands = []
     def buttonlist = ['x', state.button1.split(','), state.button2.split(','), state.button3.split(','), state.button4.split(',')]
-    log.debug buttonlist
+    log.debug "buttonlist: ${buttonlist}"
     cmd.nodeId.each({log.debug "AssociationReport: '${cmd}', hub: '$zwaveHubNodeId' reports nodeId: '$it' is associated in group: '${cmd.groupingIdentifier}'"
     	if((it != zwaveHubNodeId) && (!buttonlist[integer(cmd.groupingIdentifier)].contains(Integer.toHexString(it).toUpperCase())))
         {
-        	 log.debug "$it couldnt find " + Integer.toHexString(it).toUpperCase() + "in button ${cmd.groupingIdentifier}"
+        	 log.debug "$it couldn't find " + Integer.toHexString(it).toUpperCase() + "in button ${cmd.groupingIdentifier}"
         	 sendHubCommand(new physicalgraph.device.HubAction(zwave.associationV2.associationRemove(groupingIdentifier: cmd.groupingIdentifier, nodeId: it).format()))
         }
     })
@@ -337,24 +335,16 @@ def configurationCmds() {
 }
 
 def getparamState() {
-	/*
-	log.debug ""
-    log.debug ""
 	log.debug "Listing current parameter/attribute settings for ${device.displayName}..."
-    log.debug ""
-     */
     def cmds = []
     sendHubCommand(new physicalgraph.device.HubAction("91001D0D01FF01180508D3"))
-    /*
     log.debug "Sending $cmds to ${device.deviceNetworkId}..."
     log.debug "deviceNetworkId: ${device.deviceNetworkId}"
     log.debug "displayName: ${device.displayName}"
     log.debug "numButtons: ${numButtons}"
     log.debug "currentButton: ${currentButton}"
-     */
-    // log.debug "associatedLoad: ${associatedLoad}"
-    // log.debug "associatedLoadId: ${associatedLoadId}"
-    // log.debug ""
+    log.debug "associatedLoad: ${associatedLoad}"
+    log.debug "associatedLoadId: ${associatedLoadId}"
     // log.debug "capabilityCommands = ${getDeviceCapabilityCommands(device.capabilities)}"    
 }
 
@@ -365,10 +355,7 @@ def setLightStatus(one,two,three,four)
     def end = ["00", "00", "0A"]
     def light = integer(one) + (integer(two) << 1) + (integer(three) << 2) + (integer(four) << 3)
     /*
-    log.debug ""
-    log.debug ""    
     log.debug "Setting button-light statuses for ${device.displayName}..."
-    log.debug ""
 	log.debug "one,two,three,four = $one,$two,$three,$four"
     log.debug "HIDDEN: $hidden"
     log.debug "START: $start"
@@ -386,7 +373,6 @@ def setLightStatus(one,two,three,four)
     // log.debug "checksum, post-light: $checksum"    
     // log.debug "${start.join()}${String.format("%02X",light)}${end.join()}${String.format("%02X",checksum)}"
     sendHubCommand(new physicalgraph.device.HubAction("${start.join()}${String.format("%02X",light)}${end.join()}${String.format("%02X",checksum)}"))
-    log.debug ""
 }
 
 // Configure the device
@@ -420,13 +406,10 @@ def associateLoad(String nodeId) {
 def associateHub() {
     def commands = []
     def buttonlist = ['x', state.button1, state.button2, state.button3, state.button4]
-    log.debug ""
-    log.debug ""
     log.debug "Entering associateHub() for ${device.displayName}..."
-    log.debug ""
-    // log.debug "state = ${state}"
-    // log.debug "zwaveHubNodeId = ${[zwaveHubNodeId]}"
-    // log.debug "buttonlist = ${buttonlist}"
+    log.debug "state = ${state}"
+    log.debug "zwaveHubNodeId = ${[zwaveHubNodeId]}"
+    log.debug "buttonlist = ${buttonlist}"
     for (def buttonNum = 1; buttonNum <= integer(getDataByName("numButtons")); buttonNum++) {
 		log.debug "Loop for buttonNum = ${buttonNum}"
        	commands << zwave.sceneControllerConfV1.sceneControllerConfSet(groupId:buttonNum, sceneId:0).format()
