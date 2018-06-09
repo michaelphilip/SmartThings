@@ -107,6 +107,7 @@ def buttonEvent(evt){
 
 def updateLights(evt)
 {
+	// log.debug "updateLights evt = ${evt}"
     // log.debug "Button 1: ${switches_1*.currentValue('switch')}"
     // log.debug "Button 2: ${switches_2*.currentValue('switch')}"
     // log.debug "Button 3: ${switches_3*.currentValue('switch')}"
