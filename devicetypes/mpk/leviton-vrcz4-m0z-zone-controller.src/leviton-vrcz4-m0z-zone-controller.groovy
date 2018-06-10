@@ -134,7 +134,7 @@ def handleManufacturerProprietary(String description) {
             result << createEvent(name: "button", value: "off", data: [button: 4, status: "off"], isStateChange: true)
         	break
         default:
-        	// log.debug "Fell through to default switch case"
+        	log.debug "Fell through to default switch case"
         	break
     }
     
@@ -148,11 +148,11 @@ def setButton(num, val) {
 
 // Handle a button being pressed
 def buttonEvent(button) {
-    log.debug "Entering buttonEvent() for button ${button}..."
+    // log.debug "Entering buttonEvent() for button ${button}..."
 	button = button as Integer
 	def result = []
        
-    updateState("currentButton", "$button")
+    // updateState("currentButton", "$button")
         
     if (button > 0) {    
         // update the device state, recording the button press
@@ -161,11 +161,11 @@ def buttonEvent(button) {
 	}
     else {    
         // update the device state, recording the button press
-        log.debug "${device.displayName} button ${button} was released"
+        // log.debug "${device.displayName} button ${button} was released"
         result << createEvent(name: "button", value: "default", descriptionText: "$device.displayName button was released", isStateChange: true)        
     }
     
-    result
+    return result
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
@@ -177,7 +177,7 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
     // For a multilevel switch, cmd.value can be from 1-99 to represent dimming levels
     result << createEvent(name:"level", value: cmd.value, unit:"%", descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
 
-    result
+    return result
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchbinaryv1.SwitchBinaryReport cmd) {
@@ -190,12 +190,13 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelR
     def result = []
     result << createEvent(name:"switch", value: cmd.value ? "on" : "off")
     result << createEvent(name:"level", value: cmd.value, unit:"%", descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
-    result
+    
+    return result
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
-	log.debug "$device.displayName bzone button was pressed"
-    createEvent(name: "button", value: "default", descriptionText: "$device.displayName bzone button was pressed", isStateChange: true)
+	log.debug "$device.displayName bzone button was pressed: ${cmd}"
+    // createEvent(name: "button", value: "default", descriptionText: "$device.displayName bzone button was pressed", isStateChange: true)
 }
 
 // A zwave command for a button press was received
@@ -224,7 +225,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
 
 // A scene command was received -- it's probably scene 0, so treat it like a button release
 def zwaveEvent(physicalgraph.zwave.commands.sceneactuatorconfv1.SceneActuatorConfGet cmd) {
-	log.debug "SceneActuatorConfGet: $cmd"
+	// log.debug "SceneActuatorConfGet: $cmd"
 	buttonEvent(cmd.sceneId)
 }
 
@@ -276,6 +277,7 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv2.AssociationGroupingsRe
     else { 	
     	response << createEvent(name: "numButtons", value: cmd.supportedGroupings, displayed: false)
     }
+    
     return response
 }
 
@@ -301,8 +303,18 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv1.AssociationReport cmd)
         //commands << zwave.associationV1.associationRemove(groupingIdentifier: cmd.groupingIdentifier, nodeId: it).format()
     })
     log.debug "sending $commands"
-  //  return delayBetween(commands,100)
+    // return delayBetween(commands,100)
     //[:]
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStartLevelChange cmd) {	
+	log.debug "Switch Multilevel Start Level Change v3: ${cmd}" 
+    createEvent(name: "button", value: "on", data: [button: 0, status: "start", switch: "${state.currentButton}", direction: cmd.upDown == 1 ? "up" : "down"], isStateChange: true)
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStopLevelChange cmd) {	
+	log.debug "Switch Multilevel Stop Level Change v3: ${cmd}" 
+    createEvent(name: "button", value: "off", data: [button: 0, status: "stop", switch: "${state.currentButton}"], isStateChange: true)
 }
 
 // Handles all Z-Wave commands we don't know we are interested in
@@ -322,7 +334,7 @@ def configurationCmds() {
 		zwave.associationV1.associationGroupingsGet().format()
     ]
     
-    // commands = commands + associateHub()
+    commands = commands + associateHub()
 
     // Reset to sceneId 0 (no scene) initially to turn off all LEDs.
     // commands << zwave.sceneActuatorConfV1.sceneActuatorConfReport(dimmingDuration: 255, level: 255, sceneId: 0).format()
@@ -341,8 +353,8 @@ def getparamState() {
     log.debug "Sending $cmds to ${device.deviceNetworkId}..."
     log.debug "deviceNetworkId: ${device.deviceNetworkId}"
     log.debug "displayName: ${device.displayName}"
-    log.debug "numButtons: ${numButtons}"
-    log.debug "currentButton: ${currentButton}"
+    log.debug "numButtons: ${state.numButtons}"
+    log.debug "currentButton: ${state.currentButton}"
     log.debug "associatedLoad: ${associatedLoad}"
     log.debug "associatedLoadId: ${associatedLoadId}"
     // log.debug "capabilityCommands = ${getDeviceCapabilityCommands(device.capabilities)}"    
@@ -416,7 +428,7 @@ def associateHub() {
     	// commands << zwave.remoteAssociationActivateV1.remoteAssociationActivate(groupingIdentifier:buttonNum).format()  //***** Parse error on cmd: 9100, payload: 1D 0C 0x 00
         if(buttonlist[buttonNum]) {
              commands << zwave.associationV1.associationRemove(groupingIdentifier: buttonNum, nodeId: zwaveHubNodeId).format()
-             // commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId: [zwaveHubNodeId] + integerhex(buttonlist[buttonNum]) ).format()  //***** NumberFormatException on "001788280F07/5"
+             commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId: [zwaveHubNodeId] /* + integerhex([zwaveHubNodeId]) */).format()  //***** NumberFormatException on "001788280F07/5"
              // commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId:  integerhex(buttonlist[buttonNum]) ).format()  //***** NumberFormatException on "001788280F07/5" 
        	}                
         commands << zwave.sceneControllerConfV1.sceneControllerConfGet(groupId:buttonNum ).format()
