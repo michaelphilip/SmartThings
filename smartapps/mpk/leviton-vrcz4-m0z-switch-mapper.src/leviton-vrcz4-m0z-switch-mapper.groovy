@@ -51,10 +51,11 @@ def updated() {
 
 def initialize() {
 	subscribe(buttonDevice, "button", buttonEvent)
+    // subscribe(buttonDevice, "level", levelEvent)
     (1..4).each {
     	def devices = settings['switches_'+it]
         // log.debug "Devices for Button ${it}: ${devices}"
-        if(devices) {
+        if (devices) {
         	// log.debug "${devices.deviceNetworkId.join(',')}"
         	buttonDevice.setButton(it, devices.deviceNetworkId.join(','))
     		subscribe(devices, 'switch', updateLights)
@@ -69,9 +70,15 @@ def configured() {
 
 def buttonEvent(evt){
     def data = parseJson(evt.data)
-    // log.debug "event data: ${data}"
+    // log.debug "buttonEvent data: ${data}"
     
     switch (data.button) {
+    	case "0":
+        	if (data.status == "start")
+        		log.debug "Receiving data = ${data}, status = ${data.status}, switch = ${data.switch}, direction = ${data.direction} for button ${data.button}"
+            else
+            	log.debug "Receiving data = ${data}, status = ${data.status}, switch = ${data.switch} for button ${data.button}"
+            break
     	case "1":
         	// log.debug "Turning ${data.status} switches for button 1"
         	(data.status == "on") ? switches_1.on() : switches_1.off()
@@ -87,7 +94,10 @@ def buttonEvent(evt){
     	case "4":
         	// log.debug "Turning ${data.status} switches for button 4"
         	(data.status == "on") ? switches_4.on() : switches_4.off()
-        	break        
+        	break
+        default:
+            // log.debug "Falling through to default case for buttonEvent() on event ${evt} with evt.data ${evt.data} parsed to ${data} with status ${data.status} for button ${data.button}"
+        	break
     }
    
     /*
@@ -103,6 +113,11 @@ def buttonEvent(evt){
     }
      */
 	return;
+}
+
+def levelEvent(evt) {
+	def data = parseJson(evt.data)
+    log.debug "levelEvent data: ${data}"
 }
 
 def updateLights(evt)
