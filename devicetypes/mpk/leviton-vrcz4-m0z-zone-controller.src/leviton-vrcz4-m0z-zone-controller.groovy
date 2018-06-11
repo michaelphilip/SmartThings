@@ -308,12 +308,12 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv1.AssociationReport cmd)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStartLevelChange cmd) {	
-	log.debug "Switch Multilevel Start Level Change v3: ${cmd}" 
+	// log.debug "Switch Multilevel Start Level Change v3: ${cmd}" 
     createEvent(name: "button", value: "on", data: [button: 0, status: "start", switch: "${state.currentButton}", direction: cmd.upDown == 1 ? "up" : "down"], isStateChange: true)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStopLevelChange cmd) {	
-	log.debug "Switch Multilevel Stop Level Change v3: ${cmd}" 
+	// log.debug "Switch Multilevel Stop Level Change v3: ${cmd}" 
     createEvent(name: "button", value: "off", data: [button: 0, status: "stop", switch: "${state.currentButton}"], isStateChange: true)
 }
 
