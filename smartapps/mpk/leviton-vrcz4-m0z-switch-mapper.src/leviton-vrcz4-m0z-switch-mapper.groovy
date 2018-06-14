@@ -78,7 +78,7 @@ def buttonEvent(evt){
             atomicState.dimmingNow = (data.status == "start") ? true : false
             // log.debug "atomicState.dimmingNow set to ${atomicState.dimmingNow}"
         	if (atomicState.dimmingNow) {
-                doDimming(data.switch, data.direction)
+                startDimming(data.switch, data.direction)
             }
             break
     	case "1":
@@ -117,54 +117,47 @@ def buttonEvent(evt){
 	return;
 }
 
-def doDimming(button, direction) {
-    // log.debug "Dimming button #${button} ${direction}"
-    def newLevel = 100
-    switch (button) {
-        case "1":
-        	switches_1.each {
-        		newLevel = it.currentValue("level")
-            	// log.debug "Current level for button #1[${it}] is ${newLevel}"
-            	newLevel += (direction == "up") ? 1 : -1
-                newLevel = (newLevel < 100) ? newLevel : 100
-                newLevel = (newLevel > 0) ? newLevel : 0
-            	it.setLevel(newLevel)
-            }
+def startDimming(buttonNumber, direction) {
+    // log.debug "Starting dimming ${direction} for button #${buttonNumber}"
+    def increment = (direction == "up") ? 1 : -1
+    def buttonDevices = switches_1
+    def startLevels = switches_1*.currentValue("level")
+    switch (buttonNumber) {
+    	case "2":
+        	buttonDevices = switches_2
+            startLevels = switches_2.currentValue("level")
             break
-        case "2":
-        	switches_2.each {
-        		newLevel = it.currentValue("level")
-            	// log.debug "Current level for button #2[${it}] is ${newLevel}"
-            	newLevel += (direction == "up") ? 1 : -1
-                newLevel = (newLevel < 100) ? newLevel : 100
-                newLevel = (newLevel > 0) ? newLevel : 0
-            	it.setLevel(newLevel)
-            }
+    	case "3":
+        	buttonDevices = switches_3
+            startLevels = switches_3.currentValue("level")
             break
-        case "3":
-        	switches_3.each {
-        		newLevel = it.currentValue("level")
-            	// log.debug "Current level for button #3[${it}] is ${newLevel}"
-            	newLevel += (direction == "up") ? 1 : -1
-                newLevel = (newLevel < 100) ? newLevel : 100
-                newLevel = (newLevel > 0) ? newLevel : 0
-            	it.setLevel(newLevel)
-            }
-            break
-        case "4":
-        	switches_4.each {
-        		newLevel = it.currentValue("level")
-            	// log.debug "Current level for button #4[${it}] is ${newLevel}"
-            	newLevel += (direction == "up") ? 1 : -1
-                newLevel = (newLevel < 100) ? newLevel : 100
-                newLevel = (newLevel > 0) ? newLevel : 0
-            	it.setLevel(newLevel)
-            }
+    	case "4":
+        	buttonDevices = switches_4
+            startLevels = switches_4.currentValue("level")
             break
     }
-    (1..800).each {}
-    if (atomicState.dimmingNow && newLevel > 0 && newLevel < 100) {
-		doDimming(button, direction)
+	doDimming(buttonDevices, startLevels, increment)
+}
+
+def doDimming(buttonDevices, startLevels, increment) {
+    // log.debug "Dimming ${buttonDevices} from ${workingLevels} by ${increment}"
+    for (;;) {
+    	def newLevels = []
+        buttonDevices.eachWithIndex {device, i -> 
+        	def workingLevel = startLevels[i]
+            // log.debug "Current level for ${device} is ${workingLevel}"
+            workingLevel += increment
+            // log.debug "New level for ${device} is ${workingLevel}"
+            workingLevel = (workingLevel < 100) ? workingLevel : 100
+            workingLevel = (workingLevel > 0) ? workingLevel : 0
+            // log.debug "Final level for ${device} is ${workingLevel}"
+            device.setLevel(workingLevel)
+            newLevels << workingLevel
+        }
+        startLevels = newLevels
+        (1..1000).each {}
+        if (!atomicState.dimmingNow)
+        	break
     }
 }
 
