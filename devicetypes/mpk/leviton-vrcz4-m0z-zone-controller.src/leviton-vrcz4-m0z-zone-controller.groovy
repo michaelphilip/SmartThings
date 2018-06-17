@@ -13,7 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
- 
+
  	metadata {
 	// Automatically generated. Make future change here.
 	definition (name: "Leviton VRCZ4-M0Z Zone Controller", namespace: "mpk", author: "Michael Philip Kaufman") {
@@ -21,16 +21,16 @@
         capability "Button"
         capability "Configuration"
         capability "Sensor"
-        
+
         attribute "associatedLoad", "STRING"
         attribute "associatedLoadId", "STRING"
         attribute "currentButton", "STRING"
         attribute "numButtons", "STRING"
         command "associateLoad", ["NUMBER"]
         command "setButton", ["NUMBER", "STRING"]
- 		command "getparamState"       
- 		command "setLightStatus"       
-        
+ 		command "getparamState"
+ 		command "setLightStatus"
+
 		fingerprint deviceId: "0x0100", inClusters:"0x85, 0x2D, 0x7C, 0x77, 0x82, 0x73, 0x86, 0x72, 0x91, 0xEF, 0x2B, 0x2C"
         // fingerprint zw:L type:0100 mfr:001D prod:0702 model:0261 ver:0.02 zwv:2.97 lib:01
         // fingerprint mfr: "001D", prod: "0702", model: "0261"
@@ -54,7 +54,7 @@
 		standardTile("button", "device.button", width: 6, height: 4) {
 			state "default", label: " ", icon: "http://schemalive.com/vrcz4-m0z.png", backgroundColor: "#ffffff"
 		}
-        
+
         // Configure button.  Syncronize the device capabilities that the UI provides
 		standardTile("configure", "device.configure", inactiveLabel: false, decoration: "flat") {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
@@ -91,7 +91,7 @@ def parse(String description) {
 def handleManufacturerProprietary(String description) {
 	// log.debug "Handling manufacturer-proprietary command: '${description}'"
     def result = []
-    
+
 	switch (description) {
     	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 01 00 ":
         	// log.debug "Turning button #1 on"
@@ -118,7 +118,7 @@ def handleManufacturerProprietary(String description) {
             updateState("currentButton", "3")
             result << createEvent(name: "button", value: "on", data: [button: 3, status: "on"], isStateChange: true)
         	break
-    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 07 00 ":        
+    	case "zw device: ${device.deviceNetworkId}, command: 9100, payload: 1D 0C 07 00 ":
         	// log.debug "Turning button #3 off"
             updateState("currentButton", "3")
             result << createEvent(name: "button", value: "off", data: [button: 3, status: "off"], isStateChange: true)
@@ -137,7 +137,7 @@ def handleManufacturerProprietary(String description) {
         	log.debug "Fell through to default switch case"
         	break
     }
-    
+
     return result
 }
 
@@ -151,20 +151,20 @@ def buttonEvent(button) {
     // log.debug "Entering buttonEvent() for button ${button}..."
 	button = button as Integer
 	def result = []
-       
+
     // updateState("currentButton", "$button")
-        
-    if (button > 0) {    
+
+    if (button > 0) {
         // update the device state, recording the button press
         log.debug "${device.displayName} button ${button} was pushed"
         result << createEvent(name: "button", value: /*"pushed"*/ "button $button", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
 	}
-    else {    
+    else {
         // update the device state, recording the button press
         // log.debug "${device.displayName} button ${button} was released"
-        result << createEvent(name: "button", value: "default", descriptionText: "$device.displayName button was released", isStateChange: true)        
+        result << createEvent(name: "button", value: "default", descriptionText: "$device.displayName button was released", isStateChange: true)
     }
-    
+
     return result
 }
 
@@ -190,7 +190,7 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelR
     def result = []
     result << createEvent(name:"switch", value: cmd.value ? "on" : "off")
     result << createEvent(name:"level", value: cmd.value, unit:"%", descriptionText:"${device.displayName} dimmed ${cmd.value==255 ? 100 : cmd.value}%")
-    
+
     return result
 }
 
@@ -201,7 +201,7 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
 
 // A zwave command for a button press was received
 def zwaveEVent (physicalgraph.zwave.commands.sceneactuatorconfv1.SceneActuatorConfReport cmd) {
-    log.debug "bleh $cmd"   
+    log.debug "bleh $cmd"
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet cmd) {
@@ -233,7 +233,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactuatorconfv1.SceneActuatorCon
 def zwaveEvent(physicalgraph.zwave.commands.sceneactuatorconfv1.SceneActuatorConfReport cmd) {
     log.debug "Scene activation report"
 	log.debug "Scene ${cmd.sceneId} set to ${cmd.level}"
-    
+
     createEvent([:])
 }
 
@@ -246,7 +246,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport 
 
 // The VRC supports hail commands, but I haven't seen them.
 def zwaveEvent(physicalgraph.zwave.commands.hailv1.Hail cmd) {
-	log.debug "Hail command received" 
+	log.debug "Hail command received"
     createEvent([name: "hail", value: "hail", descriptionText: "Switch button was pressed", displayed: false])
 }
 
@@ -256,33 +256,33 @@ def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerS
 	if (state.manufacturer != cmd.manufacturerName) {
 		updateDataValue("manufacturer", cmd.manufacturerName)
 	}
-    
+
     createEvent([:])
 }
 
-// Association Groupings Reports tell us how many groupings the device supports.  
+// Association Groupings Reports tell us how many groupings the device supports.
 // This equates to the number of buttons/scenes in the VRCZ
 def zwaveEvent(physicalgraph.zwave.commands.associationv2.AssociationGroupingsReport cmd) {
-	// log.debug "Association grouping report: ${cmd}" 
+	// log.debug "Association grouping report: ${cmd}"
 	def response = []
-    
+
     // log.debug "${getDataByName("numButtons")} buttons stored"
 	if (getDataByName("numButtons") != "$cmd.supportedGroupings") {
 		updateState("numButtons", "$cmd.supportedGroupings")
         log.debug "${cmd.supportedGroupings} groups available"
         response << createEvent(name: "numButtons", value: cmd.supportedGroupings, displayed: false)
-        
+
         response << associateHub()
-	}    
-    else { 	
+	}
+    else {
     	response << createEvent(name: "numButtons", value: cmd.supportedGroupings, displayed: false)
     }
-    
+
     return response
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.associationv2.AssociationReport cmd) {
-	log.debug "Association report V2: ${cmd}" 
+	log.debug "Association report V2: ${cmd}"
 	def commands = []
     def buttonlist = ['x', state.button1.split(','), state.button2.split(','), state.button3.split(','), state.button4.split(',')]
     log.debug "buttonlist: ${buttonlist}"
@@ -297,7 +297,7 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv2.AssociationReport cmd)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.associationv1.AssociationReport cmd) {
-	log.debug "Association report V1: ${cmd}" 
+	log.debug "Association report V1: ${cmd}"
 	def commands = []
     cmd.nodeId.each({log.debug "AssociationReport v1: '${cmd}', hub: '$zwaveHubNodeId' reports nodeId: '$it' is associated in group: '${cmd.groupingIdentifier}'"
         //commands << zwave.associationV1.associationRemove(groupingIdentifier: cmd.groupingIdentifier, nodeId: it).format()
@@ -307,19 +307,19 @@ def zwaveEvent(physicalgraph.zwave.commands.associationv1.AssociationReport cmd)
     //[:]
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStartLevelChange cmd) {	
-	// log.debug "Switch Multilevel Start Level Change v3: ${cmd}" 
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStartLevelChange cmd) {
+	// log.debug "Switch Multilevel Start Level Change v3: ${cmd}"
     createEvent(name: "button", value: "on", data: [button: 0, status: "start", switch: "${state.currentButton}", direction: cmd.upDown == 1 ? "up" : "down"], isStateChange: true)
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStopLevelChange cmd) {	
-	// log.debug "Switch Multilevel Stop Level Change v3: ${cmd}" 
+def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv3.SwitchMultilevelStopLevelChange cmd) {
+	// log.debug "Switch Multilevel Stop Level Change v3: ${cmd}"
     createEvent(name: "button", value: "off", data: [button: 0, status: "stop", switch: "${state.currentButton}"], isStateChange: true)
 }
 
 // Handles all Z-Wave commands we don't know we are interested in
-def zwaveEvent(physicalgraph.zwave.Command cmd) {	
-	log.debug "Default zwaveEvent handler: ${cmd}" 
+def zwaveEvent(physicalgraph.zwave.Command cmd) {
+	log.debug "Default zwaveEvent handler: ${cmd}"
     createEvent(descriptionText: "${device.displayName}: ${cmd}")
     // createEvent([:])
 }
@@ -333,7 +333,7 @@ def configurationCmds() {
     	zwave.manufacturerSpecificV2.manufacturerSpecificGet().format(),
 		zwave.associationV1.associationGroupingsGet().format()
     ]
-    
+
     commands = commands + associateHub()
 
     // Reset to sceneId 0 (no scene) initially to turn off all LEDs.
@@ -357,7 +357,7 @@ def getparamState() {
     log.debug "currentButton: ${state.currentButton}"
     log.debug "associatedLoad: ${associatedLoad}"
     log.debug "associatedLoadId: ${associatedLoadId}"
-    // log.debug "capabilityCommands = ${getDeviceCapabilityCommands(device.capabilities)}"    
+    // log.debug "capabilityCommands = ${getDeviceCapabilityCommands(device.capabilities)}"
 }
 
 def setLightStatus(one,two,three,four)
@@ -380,9 +380,9 @@ def setLightStatus(one,two,three,four)
     start.each { checksum^=(integerhex(it)) }
     // log.debug "checksum, post-start: $checksum"
     end.each { checksum^=(integerhex(it)) }
-    // log.debug "checksum, post-end: $checksum"    
+    // log.debug "checksum, post-end: $checksum"
     checksum^=light
-    // log.debug "checksum, post-light: $checksum"    
+    // log.debug "checksum, post-light: $checksum"
     // log.debug "${start.join()}${String.format("%02X",light)}${end.join()}${String.format("%02X",checksum)}"
     sendHubCommand(new physicalgraph.device.HubAction("${start.join()}${String.format("%02X",light)}${end.join()}${String.format("%02X",checksum)}"))
 }
@@ -398,9 +398,9 @@ def configure() {
 //
 // nodeId:  a hex string, ie 4E for the Z-Wave node number
 def associateLoad(String nodeId) {
-	log.debug "Associating nodeId: ${nodeId}" 
+	log.debug "Associating nodeId: ${nodeId}"
 	def node = integerhex(nodeId)
-    
+
 	if (node != 0) {
     	updateState("associatedLoad", "1")
         updateState("associatedLoadId", nodeId)
@@ -410,7 +410,7 @@ def associateLoad(String nodeId) {
     	updateState("associatedLoad", "0")
         log.debug "No nodes associated with button 1"
     }
-   
+
    	configure()
 }
 
@@ -429,8 +429,8 @@ def associateHub() {
         if(buttonlist[buttonNum]) {
              commands << zwave.associationV1.associationRemove(groupingIdentifier: buttonNum, nodeId: zwaveHubNodeId).format()
              commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId: [zwaveHubNodeId] /* + integerhex([zwaveHubNodeId]) */).format()  //***** NumberFormatException on "001788280F07/5"
-             // commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId:  integerhex(buttonlist[buttonNum]) ).format()  //***** NumberFormatException on "001788280F07/5" 
-       	}                
+             // commands << zwave.associationV2.associationSet(groupingIdentifier: buttonNum, nodeId:  integerhex(buttonlist[buttonNum]) ).format()  //***** NumberFormatException on "001788280F07/5"
+       	}
         commands << zwave.sceneControllerConfV1.sceneControllerConfGet(groupId:buttonNum ).format()
     	commands << zwave.sceneActuatorConfV1.sceneActuatorConfGet(sceneId:buttonNum).format()
     	commands << zwave.sceneActuatorConfV1.sceneActuatorConfSet(sceneId:buttonNum, level: 255, override: false).format()
@@ -439,15 +439,15 @@ def associateHub() {
     	commands << zwave.associationV2.associationReport(groupingIdentifier:buttonNum).format()
     	commands << zwave.associationV2.associationSpecificGroupReport(group:buttonNum).format()
         // log.debug "commands: ${commands}"
-	}    
-    
+	}
+
     return commands
 }
 
 // Update State
 // Store mode and settings
 def updateState(String name, String value) {
-	// log.debug "Updating ${name} to ${value}" 
+	// log.debug "Updating ${name} to ${value}"
 	state[name] = value
 	device.updateDataValue(name, value)
 }
@@ -485,7 +485,7 @@ def integerhex(String v) {
 	if (v == null) {
     	return 0
     }
-    
+
 	return v.split(',').collect { Integer.parseInt(it, 16) }
 }
 
@@ -493,6 +493,6 @@ def integer(String v) {
 	if (v == null) {
     	return 0
     }
-    
+
 	return Integer.parseInt(v)
 }
