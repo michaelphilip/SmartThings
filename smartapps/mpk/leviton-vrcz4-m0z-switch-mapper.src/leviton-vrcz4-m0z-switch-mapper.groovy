@@ -35,7 +35,7 @@ def selectButtons() {
         }
        section {
             label(title: "Label this SmartApp", required: false, defaultValue: "Leviton VRCZ4-M0Z Switch Mapper")
-        }  
+        }
     }
 }
 
@@ -72,7 +72,7 @@ def configured() {
 def buttonEvent(evt){
     def data = parseJson(evt.data)
     // log.debug "buttonEvent data: ${data}"
-    
+
     switch (data.button) {
     	case "0":
             atomicState.dimmingNow = (data.status == "start") ? true : false
@@ -84,15 +84,15 @@ def buttonEvent(evt){
     	case "1":
         	// log.debug "Turning ${data.status} switches for button 1"
         	(data.status == "on") ? switches_1.on() : switches_1.off()
-        	break        
+        	break
     	case "2":
         	// log.debug "Turning ${data.status} switches for button 2"
         	(data.status == "on") ? switches_2.on() : switches_2.off()
-        	break        
+        	break
     	case "3":
         	// log.debug "Turning ${data.status} switches for button 3"
         	(data.status == "on") ? switches_3.on() : switches_3.off()
-        	break        
+        	break
     	case "4":
         	// log.debug "Turning ${data.status} switches for button 4"
         	(data.status == "on") ? switches_4.on() : switches_4.off()
@@ -101,7 +101,7 @@ def buttonEvent(evt){
             // log.debug "Falling through to default case for buttonEvent() on event ${evt} with evt.data ${evt.data} parsed to ${data} with status ${data.status} for button ${data.button}"
         	break
     }
-   
+
     /*
     (1..4).each {
       settings['switches_'+it].each {
@@ -143,7 +143,7 @@ def doDimming(buttonDevices, startLevels, increment) {
     // log.debug "Dimming ${buttonDevices} from ${workingLevels} by ${increment}"
     for (;;) {
     	def newLevels = []
-        buttonDevices.eachWithIndex {device, i -> 
+        buttonDevices.eachWithIndex {device, i ->
         	def workingLevel = startLevels[i]
             // log.debug "Current level for ${device} is ${workingLevel}"
             workingLevel += increment
