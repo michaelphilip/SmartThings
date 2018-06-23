@@ -70,8 +70,11 @@ def configured() {
 }
 
 def buttonEvent(evt){
+	// log.debug "buttonEvent evt: ${evt}"
     def data = parseJson(evt.data)
-    // log.debug "buttonEvent data: ${data}"
+    // log.debug "buttonEvent data: ${data} -- data.button: ${data.button} -- data.buttonNumber: ${data.buttonNumber}"
+    data.button = (data.button != null) ? data.button : data.buttonNumber
+    // log.debug "buttonEvent data: ${data} -- data.button: ${data.button} -- data.buttonNumber: ${data.buttonNumber}"
     
     switch (data.button) {
     	case "0":
@@ -163,11 +166,11 @@ def doDimming(buttonDevices, startLevels, increment) {
 
 def updateLights(evt)
 {
-	// log.debug "updateLights evt = ${evt}"
-    // log.debug "Button 1: ${switches_1*.currentValue('switch')}"
-    // log.debug "Button 2: ${switches_2*.currentValue('switch')}"
-    // log.debug "Button 3: ${switches_3*.currentValue('switch')}"
-    // log.debug "Button 4: ${switches_4*.currentValue('switch')}"
+	log.debug "updateLights evt = ${evt}"
+    log.debug "Button 1: ${switches_1*.currentValue('switch')}"
+    log.debug "Button 2: ${switches_2*.currentValue('switch')}"
+    log.debug "Button 3: ${switches_3*.currentValue('switch')}"
+    log.debug "Button 4: ${switches_4*.currentValue('switch')}"
 	def one = switches_1*.currentValue('switch').contains('on')
 	def two = switches_2*.currentValue('switch').contains('on')
 	def three = switches_3*.currentValue('switch').contains('on')
