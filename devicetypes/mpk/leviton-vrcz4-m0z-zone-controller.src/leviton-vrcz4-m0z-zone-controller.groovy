@@ -151,7 +151,7 @@ def handleManufacturerProprietary(String description) {
 }
 
 def setButton(num, val) {
-	// log.debug "Setting button${num} to ${val}"
+	log.debug "Setting button${num} to ${val}"
 	updateState("button$num", val)
 }
 
@@ -391,7 +391,7 @@ def getparamState() {
 def setLightStatus(one,two,three,four)
 {
     def hidden = ["0F", "00", "13", device.deviceNetworkId ]
-    def start = ["91","00", "1D", "0D", "01", "FF"]
+    def start = ["91", "00", "1D", "0D", "01", "FF"]
     def end = ["00", "00", "0A"]
     def light = integer(one) + (integer(two) << 1) + (integer(three) << 2) + (integer(four) << 3)
     log.debug "Setting button-light statuses for ${device.displayName}..."
