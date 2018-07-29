@@ -122,7 +122,7 @@ def buttonEvent(evt){
 
 def startDimming(buttonNumber, direction) {
     // log.debug "Starting dimming ${direction} for button #${buttonNumber}"
-    def increment = (direction == "up") ? 1 : -1
+    def increment = (direction == "up") ? 2 : -2
     def buttonDevices = switches_1
     def startLevels = switches_1*.currentValue("level")
     switch (buttonNumber) {
