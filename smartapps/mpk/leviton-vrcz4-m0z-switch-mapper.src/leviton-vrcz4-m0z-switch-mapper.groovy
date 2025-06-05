@@ -54,7 +54,7 @@ def initialize() {
 	subscribe(buttonDevice, "button", buttonEvent)
     // subscribe(buttonDevice, "level", levelEvent)
     (1..4).each {
-    	def devices = settings["switches_${it}"]
+      def devices = settings['switches_'+it]
       def deviceids = (devices.deviceNetworkId instanceof String) ? [devices.deviceNetworkId] : devices.deviceNetworkId
         // log.debug "Devices for Button ${it}: ${devices}"
         if (devices) {
